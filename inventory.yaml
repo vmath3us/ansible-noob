@@ -1,0 +1,6 @@
+almalinux:
+  hosts:
+    alma:
+      ansible_host: 127.0.0.1
+      ansible_port: 8888
+      ansible_user: root
