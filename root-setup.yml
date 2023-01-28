@@ -1,0 +1,8 @@
+- name: almalinux set
+  hosts: alma
+  remote_user: root
+  roles:
+
+    - packages
+    - zsh
+    - editor

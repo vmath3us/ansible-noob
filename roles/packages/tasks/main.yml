@@ -1,0 +1,17 @@
+---
+
+    - name: extra repo
+      dnf:
+        name:
+          - epel-release
+        state: present
+    - name: config host
+      dnf:
+        name:
+          - tar
+          - zsh
+          - curl
+          - git
+          - neovim
+          - tig
+        state: present

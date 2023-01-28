@@ -1,0 +1,59 @@
+---
+
+    - name: verify path oh-my-zsh
+      stat:
+        path: "/root/.oh-my-zsh"
+      register: file_data
+
+    - name: install omz
+      ansible.builtin.shell:
+        cmd: sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+      when: not file_data.stat.exists
+
+    - name: verify path syntax
+      stat:
+        path: "/root/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
+      register: file_data
+
+    - name: download plugin syntax
+      ansible.builtin.shell:
+        cmd: git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+      when: not file_data.stat.exists
+
+    - name: verify path suggestions
+      stat:
+        path: "/root/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
+      register: file_data
+
+    - name: download plugin suggestion
+      ansible.builtin.shell:
+        cmd: git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+      when: not file_data.stat.exists
+
+    - name: verify path p10k
+      stat:
+        path: "/root/.oh-my-zsh/custom/themes/powerlevel10k"
+      register: file_data
+
+    - name: install p10k
+      ansible.builtin.shell:
+        cmd: git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+      when: not file_data.stat.exists
+
+    - name: config plugins
+      lineinfile:
+        path: "/root/.zshrc"
+        regexp: '^plugins='
+        line: 'plugins=(zsh-syntax-highlighting git zsh-autosuggestions)'
+
+    - name: set p10k
+      lineinfile:
+         path: "/root/.zshrc"
+         regexp: '^ZSH_THEME='
+         line: 'ZSH_THEME="powerlevel10k/powerlevel10k"'
+   
+    - name: change shell
+      user:
+        name: "{{ansible_user}}"
+        shell: /bin/zsh
+        state: present
