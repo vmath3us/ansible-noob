@@ -1,5 +1,8 @@
 - name: almalinux set
   hosts: alma
+    #  vars_files:
+    #    - hashtable.yaml
+  remote_user: root
   tasks:
     - name: extra repo
       dnf:
@@ -45,9 +48,18 @@
         cmd: git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
       when: not file_data.stat.exists
 
-    - name: set plugin
+    - name: config zshrc
+      stat:
+        get_checksum: true
+        path: "/root/.zshrc"
+      register: file_data
+
+    - name: sed zshrc
+      vars:
+        hash: "0078d8614210b8df3a20be95df3350488b698ba1"
       ansible.builtin.shell:
         cmd: sed -i "s|plugins.*|plugins=(zsh-syntax-highlighting git zsh-autosuggestions)|" /root/.zshrc
+      when: file_data.stat.checksum != hash
 
     - name: change shell
       user:
@@ -55,10 +67,22 @@
         shell: /bin/zsh
         state: present
 
+    - name: view vimplug
+      stat:
+          path: "/root/.local/share/nvim/site/autoload/plug.vim"
+      register: file_list #
+
     - name: install vimplug
       ansible.builtin.shell:
         cmd: sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+      when: not file_list.stat.exists
 
+    - name: view init.vim
+      stat:
+         path: "/root/.config/nvim/init.vim"
+      register: file_list #
+ 
     - name: config neovim
       ansible.builtin.shell:
         cmd: curl -fLo /root/.config/nvim/init.vim --create-dirs https://raw.githubusercontent.com/vmath3us/arch-start/main/init.vim
+      when: not file_list.stat.exists
